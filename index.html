@@ -1,90 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Photo Share — Minimal Social (Realtime)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Photo Share</title>
+  <meta charset="UTF-8">
   <style>
-    /* Minimal, modern styling (not Instagram) */
-    :root{--blue:#4a90e2;--muted:#777;--bg:#f8f9fa}
-    *{box-sizing:border-box}
-    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:var(--bg); color:#111}
-    header{background:var(--blue); color:#fff; padding:14px 16px; text-align:center; font-weight:600}
-    .container{max-width:1100px; margin:20px auto; padding:0 16px}
-    .card{background:#fff; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); padding:16px; margin-bottom:16px}
-    .row{display:flex; gap:12px; align-items:center}
-    .name-box, .upload-box{max-width:680px; margin:0 auto}
-    input[type="text"], input[type="file"], textarea, button {
-      width:100%; padding:10px; border:1px solid #e6e6e6; border-radius:8px; font-size:14px;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
     }
-    button{background:var(--blue); color:#fff; border:0; cursor:pointer}
-    button.secondary{background:#eee; color:#333}
-    h2{text-align:center; color:#222; margin:20px 0 8px}
-    .feed{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-top:12px }
-    .post .img-wrap img{width:100%; height:auto; display:block}
-    .caption{padding:10px 12px; color:#333}
-    .meta{display:flex; justify-content:space-between; align-items:center; padding:8px 12px 12px; color:var(--muted); font-size:13px; border-top:1px solid #f3f3f3}
-    .likes{cursor:pointer; color:var(--blue); font-weight:600}
-    .comments{padding:8px 12px 16px}
-    .comment{padding:8px 0; border-bottom:1px solid #f2f2f2; font-size:14px}
-    .comment small{color:var(--muted)}
-    .small{font-size:13px; color:var(--muted)}
-    .center{max-width:640px; margin:0 auto}
+    header {
+      background: #4a90e2;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .upload-box {
+      background: white;
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    input, button {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #3b7ec4;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 2rem;
+      color: #333;
+    }
+    .feed {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .post {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .post img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .caption {
+      padding: 0.8rem;
+      font-size: 0.95rem;
+      color: #444;
+    }
+    .comments {
+      padding: 0.8rem;
+      border-top: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+    .comment {
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .comment small {
+      color: #666;
+    }
+    .comment-input {
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
   <header>Photo Share</header>
 
-  <div class="container">
-    <!-- user name card -->
-    <div class="card name-box">
-      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px">
-          <strong>Your display name</strong>
-          <div class="small">Set a name once — saved to Firebase (anonymous auth used).</div>
-        </div>
-        <div style="flex:1;min-width:220px">
-          <input id="nameInput" type="text" placeholder="Enter display name (e.g., Zoe, PhotoLover)" />
-        </div>
-        <div style="width:140px">
-          <button id="saveNameBtn">Save Name</button>
-        </div>
-      </div>
-      <div id="userStatus" class="small" style="margin-top:10px;color:var(--muted)">Signing in...</div>
-    </div>
-
-    <!-- upload card -->
-    <div class="card upload-box center">
-      <strong>Upload a photo</strong>
-      <div class="small">JPEG/PNG. Size will be uploaded as-is (consider compressing before upload for speed).</div>
-      <input id="photoInput" type="file" accept="image/*" style="margin-top:10px" />
-      <input id="captionInput" type="text" placeholder="Caption (optional)" style="margin-top:8px" />
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button id="uploadBtn">Upload</button>
-        <button id="clearBtn" class="secondary">Clear</button>
-      </div>
-    </div>
-
-    <h2>Latest Uploads (Realtime)</h2>
-    <div id="feed" class="feed" aria-live="polite"></div>
+  <div class="upload-box">
+    <input type="text" id="nameInput" placeholder="Your name">
+    <input type="file" id="photoInput">
+    <input type="text" id="captionInput" placeholder="Caption">
+    <button id="uploadBtn">Upload</button>
   </div>
 
-  <!-- Firebase v9 modular via CDN -->
-  <script type="module">
-    // ----- FIREBASE SDK IMPORTS (modular) -----
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import {
-      getAuth, signInAnonymously, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import {
-      getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot,
-      query, orderBy, serverTimestamp, updateDoc, increment
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-    import {
-      getStorage, ref, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+  <h2>Latest Uploads</h2>
+  <div id="feed" class="feed"></div>
 
-    // ----- YOUR FIREBASE CONFIG -----
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+    import { 
+      getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+    import { 
+      getStorage, ref, uploadBytes, getDownloadURL 
+    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
+
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCyQTC9BMD90v8EOS5ZJOOzLArqifp85Qk",
       authDomain: "cytra-a9b1d.firebaseapp.com",
@@ -95,254 +127,95 @@
       measurementId: "G-LGJ250744Y"
     };
 
-    // ----- INIT -----
+    // Init Firebase
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // UI refs
-    const nameInput = document.getElementById('nameInput');
-    const saveNameBtn = document.getElementById('saveNameBtn');
-    const userStatus = document.getElementById('userStatus');
+    // Upload photo
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const name = document.getElementById("nameInput").value.trim();
+      const file = document.getElementById("photoInput").files[0];
+      const caption = document.getElementById("captionInput").value.trim();
 
-    const photoInput = document.getElementById('photoInput');
-    const captionInput = document.getElementById('captionInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const feed = document.getElementById('feed');
-
-    // map to hold comment unsub functions so we can detach when re-rendering
-    const commentUnsubs = new Map();
-
-    // Sign in anonymously on load
-    signInAnonymously(auth).catch(err => {
-      console.error("Anonymous sign-in failed:", err);
-      userStatus.textContent = "Sign-in failed. Check console.";
-    });
-
-    // When auth state changes, ensure user doc exists
-    onAuthStateChanged(auth, async user => {
-      if (!user) {
-        userStatus.textContent = "Not signed in.";
-        return;
-      }
-      const uid = user.uid;
-      userStatus.textContent = `Signed in — UID: ${uid}`;
-
-      // create user doc if not exists
-      const userDocRef = doc(db, "users", uid);
-      const snap = await getDoc(userDocRef);
-      if (!snap.exists()) {
-        // default name = Anonymous
-        await setDoc(userDocRef, { name: "Anonymous", createdAt: serverTimestamp() });
-        nameInput.value = "";
-      } else {
-        const data = snap.data();
-        nameInput.value = data.name || "";
-      }
-    });
-
-    // Save name button — writes to users/{uid}
-    saveNameBtn.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user) return alert("Not signed in yet");
-      const name = nameInput.value.trim();
-      if (!name) return alert("Please enter a display name");
-      await setDoc(doc(db, "users", user.uid), { name, updatedAt: serverTimestamp() }, { merge: true });
-      alert("Name saved!");
-    });
-
-    // Clear upload form
-    clearBtn.addEventListener('click', () => {
-      photoInput.value = "";
-      captionInput.value = "";
-    });
-
-    // Upload handler
-    uploadBtn.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user) return alert("Not signed in yet");
-      const file = photoInput.files[0];
+      if (!name) return alert("Enter your name");
       if (!file) return alert("Choose a photo first");
-      const caption = captionInput.value.trim();
 
-      try {
-        uploadBtn.disabled = true;
-        uploadBtn.textContent = "Uploading…";
+      const storageRef = ref(storage, `photos/${Date.now()}-${file.name}`);
+      await uploadBytes(storageRef, file);
 
-        // Save file to storage
-        const filename = `${Date.now()}-${Math.random().toString(36).slice(2,9)}-${file.name.replace(/\s+/g,'_')}`;
-        const storageRef = ref(storage, `photos/${user.uid}/${filename}`);
-        await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
 
-        // Get URL
-        const url = await getDownloadURL(storageRef);
-
-        // Get user display name to store with post (fast render)
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const displayName = (userDoc.exists() && userDoc.data().name) ? userDoc.data().name : "Anonymous";
-
-        // Create post doc
-        await addDoc(collection(db, "posts"), {
-          uid: user.uid,
-          name: displayName,
-          caption,
-          photoUrl: url,
-          likes: 0,
-          createdAt: serverTimestamp()
-        });
-
-        // Clear inputs
-        photoInput.value = "";
-        captionInput.value = "";
-        alert("Uploaded!");
-      } catch (err) {
-        console.error("Upload failed:", err);
-        alert("Upload failed — see console for details.");
-      } finally {
-        uploadBtn.disabled = false;
-        uploadBtn.textContent = "Upload";
-      }
-    });
-
-    // Helper to create a comment element
-    function createCommentElement(cData) {
-      const d = document.createElement('div');
-      d.className = 'comment';
-      const who = cData.name ? `${cData.name}` : 'Anonymous';
-      const text = cData.text || '';
-      d.innerHTML = `<strong>${escapeHtml(who)}</strong> <small class="small">${cData.createdAt ? '' : ''}</small><div>${escapeHtml(text)}</div>`;
-      return d;
-    }
-
-    // escape simple html to avoid injection
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // Listen to posts collection in real-time (newest first)
-    const postsQ = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    onSnapshot(postsQ, snapshot => {
-      // remove previous comment listeners
-      commentUnsubs.forEach(unsub => unsub());
-      commentUnsubs.clear();
-
-      feed.innerHTML = ""; // re-render
-      snapshot.forEach(docSnap => {
-        const id = docSnap.id;
-        const data = docSnap.data();
-
-        const postEl = document.createElement('div');
-        postEl.className = 'card post';
-        // build DOM
-        const imgWrap = document.createElement('div');
-        imgWrap.className = 'img-wrap';
-        const img = document.createElement('img');
-        img.src = data.photoUrl;
-        img.alt = data.caption || 'photo';
-        img.loading = 'lazy';
-        imgWrap.appendChild(img);
-
-        const captionDiv = document.createElement('div');
-        captionDiv.className = 'caption';
-        captionDiv.textContent = data.caption || '';
-
-        const metaDiv = document.createElement('div');
-        metaDiv.className = 'meta';
-        const bySpan = document.createElement('span');
-        bySpan.textContent = `By: ${data.name || 'Anonymous'}`;
-        const likeBtn = document.createElement('span');
-        likeBtn.className = 'likes';
-        likeBtn.style.userSelect = 'none';
-        likeBtn.textContent = `❤️ ${data.likes || 0}`;
-        likeBtn.addEventListener('click', async () => {
-          try {
-            await updateDoc(doc(db, "posts", id), { likes: increment(1) });
-          } catch (err) {
-            console.error("Like failed:", err);
-          }
-        });
-
-        metaDiv.appendChild(bySpan);
-        metaDiv.appendChild(likeBtn);
-
-        // comments area
-        const commentsDiv = document.createElement('div');
-        commentsDiv.className = 'comments';
-
-        // input row
-        const inputRow = document.createElement('div');
-        inputRow.className = 'row';
-        const commentInput = document.createElement('input');
-        commentInput.type = 'text';
-        commentInput.placeholder = 'Add a comment';
-        commentInput.style.flex = '1';
-        const postCBtn = document.createElement('button');
-        postCBtn.textContent = 'Post';
-        postCBtn.style.width = '88px';
-        postCBtn.addEventListener('click', async () => {
-          const txt = commentInput.value.trim();
-          if (!txt) return;
-          const user = auth.currentUser;
-          if (!user) return alert("Not signed in");
-          // get latest displayName
-          const userSnap = await getDoc(doc(db, "users", user.uid));
-          const name = (userSnap.exists() && userSnap.data().name) ? userSnap.data().name : 'Anonymous';
-          try {
-            await addDoc(collection(db, "posts", id, "comments"), {
-              text: txt,
-              name,
-              createdAt: serverTimestamp()
-            });
-            commentInput.value = '';
-          } catch (err) {
-            console.error('Add comment failed', err);
-          }
-        });
-
-        inputRow.appendChild(commentInput);
-        inputRow.appendChild(postCBtn);
-
-        commentsDiv.appendChild(inputRow);
-
-        // attach all parts
-        postEl.appendChild(imgWrap);
-        postEl.appendChild(captionDiv);
-        postEl.appendChild(metaDiv);
-        postEl.appendChild(commentsDiv);
-
-        feed.appendChild(postEl);
-
-        // Listen to comments realtime for this post, and render them above the input
-        const commentsRef = query(collection(db, "posts", id, "comments"), orderBy("createdAt", "asc"));
-        const unsubComments = onSnapshot(commentsRef, cSnap => {
-          // keep inputRow at bottom: remove everything except inputRow and re-add comments above it
-          // first clear all children
-          commentsDiv.innerHTML = '';
-          // add comments
-          cSnap.forEach(cDoc => {
-            const el = createCommentElement(cDoc.data());
-            commentsDiv.appendChild(el);
-          });
-          // append inputRow at the end
-          commentsDiv.appendChild(inputRow);
-        }, err => {
-          console.error("Comments listen error", err);
-        });
-
-        // store unsub so we can clean later
-        commentUnsubs.set(id, unsubComments);
+      await addDoc(collection(db, "posts"), {
+        name,
+        caption,
+        photoUrl: url,
+        createdAt: serverTimestamp()
       });
-    }, err => {
-      console.error("Posts listen error", err);
+
+      document.getElementById("photoInput").value = "";
+      document.getElementById("captionInput").value = "";
+      alert("Uploaded!");
     });
+
+    // Render feed
+    const feed = document.getElementById("feed");
+    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+
+    onSnapshot(postsQuery, (snapshot) => {
+      feed.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const postData = docSnap.data();
+        const postId = docSnap.id;
+
+        const postDiv = document.createElement("div");
+        postDiv.classList.add("post");
+        postDiv.innerHTML = `
+          <img src="${postData.photoUrl}" alt="Uploaded photo">
+          <div class="caption"><strong>${postData.name}</strong>: ${postData.caption || ""}</div>
+          <div class="comments" id="comments-${postId}">
+            <div class="comment-input">
+              <input type="text" id="commentName-${postId}" placeholder="Your name">
+              <input type="text" id="commentText-${postId}" placeholder="Add a comment">
+              <button onclick="addComment('${postId}')">Post</button>
+            </div>
+          </div>
+        `;
+        feed.appendChild(postDiv);
+
+        // Listen for comments
+        const commentsRef = collection(db, "posts", postId, "comments");
+        onSnapshot(query(commentsRef, orderBy("createdAt", "asc")), (commentSnap) => {
+          const commentsContainer = document.getElementById(`comments-${postId}`);
+          const inputBox = commentsContainer.querySelector(".comment-input");
+          commentsContainer.innerHTML = "";
+          commentSnap.forEach(cDoc => {
+            const cData = cDoc.data();
+            const commentDiv = document.createElement("div");
+            commentDiv.classList.add("comment");
+            commentDiv.innerHTML = `<strong>${cData.name}</strong>: ${cData.text}`;
+            commentsContainer.appendChild(commentDiv);
+          });
+          commentsContainer.appendChild(inputBox);
+        });
+      });
+    });
+
+    // Add comment function (global)
+    window.addComment = async (postId) => {
+      const name = document.getElementById(`commentName-${postId}`).value.trim();
+      const text = document.getElementById(`commentText-${postId}`).value.trim();
+      if (!name) return alert("Enter your name");
+      if (!text) return;
+
+      await addDoc(collection(db, "posts", postId, "comments"), {
+        name,
+        text,
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById(`commentText-${postId}`).value = "";
+    };
   </script>
 </body>
 </html>
