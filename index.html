@@ -1,221 +1,264 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" >
 <head>
-  <title>Photo Share</title>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Name Combiner</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
-      margin: 0;
-      padding: 0;
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 10px;
     }
-    header {
-      background: #4a90e2;
-      color: white;
-      padding: 1rem;
+    h1 {
       text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
     }
-    .upload-box {
-      background: white;
-      max-width: 500px;
-      margin: 2rem auto;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    input, button {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1rem;
-      box-sizing: border-box;
+    input {
+      flex: 1 1 200px;
+      font-size: 1.2rem;
+      padding: 8px;
     }
     button {
-      background: #4a90e2;
-      color: white;
+      padding: 8px 16px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    #results, #favorites {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+    .name-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f0f0f0;
+      margin: 6px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .name-text {
+      flex-grow: 1;
+    }
+    .star-btn {
+      margin-left: 10px;
+      font-size: 1.3rem;
+      background: none;
       border: none;
       cursor: pointer;
-      transition: background 0.2s;
+      color: #ccc;
+      transition: color 0.3s ease;
     }
-    button:hover {
-      background: #3b7ec4;
+    .star-btn.saved {
+      color: gold;
     }
-    h2 {
-      text-align: center;
-      margin-top: 2rem;
-      color: #333;
-    }
-    .feed {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .post {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .post img {
-      width: 100%;
-      height: auto;
+    #toggleFavoritesBtn {
+      margin-top: 20px;
       display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .caption {
-      padding: 0.8rem;
-      font-size: 0.95rem;
-      color: #444;
-    }
-    .comments {
-      padding: 0.8rem;
-      border-top: 1px solid #eee;
-      font-size: 0.9rem;
-    }
-    .comment {
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .comment small {
-      color: #666;
-    }
-    .comment-input {
-      margin-top: 0.5rem;
+    #favorites {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>Photo Share</header>
 
-  <div class="upload-box">
-    <input type="text" id="nameInput" placeholder="Your name">
-    <input type="file" id="photoInput">
-    <input type="text" id="captionInput" placeholder="Caption">
-    <button id="uploadBtn">Upload</button>
+  <h1>Name Combiner</h1>
+
+  <div class="input-area">
+    <input id="name1" placeholder="Enter first name" autocomplete="off" />
+    <input id="name2" placeholder="Enter second name" autocomplete="off" />
+    <button id="generateBtn">Combine</button>
   </div>
 
-  <h2>Latest Uploads</h2>
-  <div id="feed" class="feed"></div>
+  <button id="toggleFavoritesBtn">Show Favorites</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { 
-      getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy 
-    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-    import { 
-      getStorage, ref, uploadBytes, getDownloadURL 
-    } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
+  <div id="results"></div>
+  <div id="favorites"></div>
 
-    // Your Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyCyQTC9BMD90v8EOS5ZJOOzLArqifp85Qk",
-      authDomain: "cytra-a9b1d.firebaseapp.com",
-      projectId: "cytra-a9b1d",
-      storageBucket: "cytra-a9b1d.appspot.com",
-      messagingSenderId: "60383087529",
-      appId: "1:60383087529:web:4c4c792eba06a10f4412b8",
-      measurementId: "G-LGJ250744Y"
-    };
+<script>
+  const name1Input = document.getElementById('name1');
+  const name2Input = document.getElementById('name2');
+  const generateBtn = document.getElementById('generateBtn');
+  const resultsDiv = document.getElementById('results');
+  const favoritesDiv = document.getElementById('favorites');
+  const toggleFavoritesBtn = document.getElementById('toggleFavoritesBtn');
 
-    // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+  function splitSyllables(name) {
+    const regex = /[^aeiouy]*[aeiouy]+(?:[^aeiouy]+(?=[aeiouy])|[^aeiouy]*)/gi;
+    return name.match(regex) || [];
+  }
 
-    // Upload photo
-    document.getElementById("uploadBtn").addEventListener("click", async () => {
-      const name = document.getElementById("nameInput").value.trim();
-      const file = document.getElementById("photoInput").files[0];
-      const caption = document.getElementById("captionInput").value.trim();
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 
-      if (!name) return alert("Enter your name");
-      if (!file) return alert("Choose a photo first");
+  function combineNames(n1, n2) {
+    const combos = new Set();
 
-      const storageRef = ref(storage, `photos/${Date.now()}-${file.name}`);
-      await uploadBytes(storageRef, file);
+    const nameA = n1.toLowerCase().trim();
+    const nameB = n2.toLowerCase().trim();
 
-      const url = await getDownloadURL(storageRef);
+    if (!nameA || !nameB) return [];
 
-      await addDoc(collection(db, "posts"), {
-        name,
-        caption,
-        photoUrl: url,
-        createdAt: serverTimestamp()
+    const sylA = splitSyllables(nameA);
+    const sylB = splitSyllables(nameB);
+
+    let halfA = sylA.slice(0, Math.ceil(sylA.length / 2)).join('');
+    let halfB = sylB.slice(Math.floor(sylB.length / 2)).join('');
+    combos.add(capitalize(halfA + halfB));
+
+    halfA = sylA.slice(Math.floor(sylA.length / 2)).join('');
+    halfB = sylB.slice(0, Math.ceil(sylB.length / 2)).join('');
+    combos.add(capitalize(halfB + halfA));
+
+    let altCombo = '';
+    const maxLen = Math.max(sylA.length, sylB.length);
+    for(let i = 0; i < maxLen; i++){
+      if(i < sylA.length) altCombo += sylA[i];
+      if(i < sylB.length) altCombo += sylB[i];
+    }
+    combos.add(capitalize(altCombo));
+
+    if(sylA.length > 0 && sylB.length > 0) {
+      combos.add(capitalize(sylA[0] + sylB[sylB.length -1]));
+      combos.add(capitalize(sylB[0] + sylA[sylA.length -1]));
+    }
+
+    combos.add(capitalize(nameA + nameB));
+    combos.add(capitalize(nameB + nameA));
+
+    return Array.from(combos);
+  }
+
+  const STORAGE_KEY = 'nameCombinerFavorites';
+
+  function loadFavorites() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveFavorites(favs) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(favs));
+  }
+
+  function speak(text) {
+    if (!window.speechSynthesis) {
+      alert('Sorry, your browser does not support speech synthesis.');
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    // Pick a female voice if possible
+    const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
+    if (voices.length > 0) {
+      utterance.voice = voices[0];
+    } else {
+      const engVoices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+      if (engVoices.length > 0) utterance.voice = engVoices[0];
+    }
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  }
+
+  function renderList(list, container, isFavorites = false) {
+    container.innerHTML = '';
+    if (list.length === 0) {
+      container.textContent = isFavorites ? 'No favorites saved yet.' : 'No names to show.';
+      return;
+    }
+    const favorites = loadFavorites();
+
+    list.forEach(name => {
+      const item = document.createElement('div');
+      item.className = 'name-item';
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'name-text';
+      textSpan.textContent = name;
+      textSpan.title = 'Click to hear it';
+      textSpan.style.userSelect = 'none';
+      textSpan.style.flexGrow = '1';
+
+      textSpan.addEventListener('click', () => {
+        speak(name);
       });
 
-      document.getElementById("photoInput").value = "";
-      document.getElementById("captionInput").value = "";
-      alert("Uploaded!");
-    });
+      item.appendChild(textSpan);
 
-    // Render feed
-    const feed = document.getElementById("feed");
-    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      if (!isFavorites) {
+        const starBtn = document.createElement('button');
+        starBtn.className = 'star-btn';
+        starBtn.innerHTML = favorites.includes(name) ? '★' : '☆';
+        if (favorites.includes(name)) starBtn.classList.add('saved');
+        starBtn.title = favorites.includes(name) ? 'Remove from favorites' : 'Add to favorites';
 
-    onSnapshot(postsQuery, (snapshot) => {
-      feed.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const postData = docSnap.data();
-        const postId = docSnap.id;
-
-        const postDiv = document.createElement("div");
-        postDiv.classList.add("post");
-        postDiv.innerHTML = `
-          <img src="${postData.photoUrl}" alt="Uploaded photo">
-          <div class="caption"><strong>${postData.name}</strong>: ${postData.caption || ""}</div>
-          <div class="comments" id="comments-${postId}">
-            <div class="comment-input">
-              <input type="text" id="commentName-${postId}" placeholder="Your name">
-              <input type="text" id="commentText-${postId}" placeholder="Add a comment">
-              <button onclick="addComment('${postId}')">Post</button>
-            </div>
-          </div>
-        `;
-        feed.appendChild(postDiv);
-
-        // Listen for comments
-        const commentsRef = collection(db, "posts", postId, "comments");
-        onSnapshot(query(commentsRef, orderBy("createdAt", "asc")), (commentSnap) => {
-          const commentsContainer = document.getElementById(`comments-${postId}`);
-          const inputBox = commentsContainer.querySelector(".comment-input");
-          commentsContainer.innerHTML = "";
-          commentSnap.forEach(cDoc => {
-            const cData = cDoc.data();
-            const commentDiv = document.createElement("div");
-            commentDiv.classList.add("comment");
-            commentDiv.innerHTML = `<strong>${cData.name}</strong>: ${cData.text}`;
-            commentsContainer.appendChild(commentDiv);
-          });
-          commentsContainer.appendChild(inputBox);
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          let favs = loadFavorites();
+          if (favs.includes(name)) {
+            favs = favs.filter(f => f !== name);
+            starBtn.innerHTML = '☆';
+            starBtn.classList.remove('saved');
+            starBtn.title = 'Add to favorites';
+          } else {
+            favs.push(name);
+            starBtn.innerHTML = '★';
+            starBtn.classList.add('saved');
+            starBtn.title = 'Remove from favorites';
+          }
+          saveFavorites(favs);
         });
-      });
+
+        item.appendChild(starBtn);
+      }
+
+      container.appendChild(item);
     });
+  }
 
-    // Add comment function (global)
-    window.addComment = async (postId) => {
-      const name = document.getElementById(`commentName-${postId}`).value.trim();
-      const text = document.getElementById(`commentText-${postId}`).value.trim();
-      if (!name) return alert("Enter your name");
-      if (!text) return;
+  let favoritesVisible = false;
+  toggleFavoritesBtn.addEventListener('click', () => {
+    favoritesVisible = !favoritesVisible;
+    favoritesDiv.style.display = favoritesVisible ? 'block' : 'none';
+    toggleFavoritesBtn.textContent = favoritesVisible ? 'Hide Favorites' : 'Show Favorites';
+    if (favoritesVisible) {
+      const favs = loadFavorites();
+      renderList(favs, favoritesDiv, true);
+    }
+  });
 
-      await addDoc(collection(db, "posts", postId, "comments"), {
-        name,
-        text,
-        createdAt: serverTimestamp()
-      });
+  generateBtn.addEventListener('click', () => {
+    const n1 = name1Input.value;
+    const n2 = name2Input.value;
+    const combos = combineNames(n1, n2);
+    renderList(combos, resultsDiv, false);
+  });
 
-      document.getElementById(`commentText-${postId}`).value = "";
-    };
-  </script>
+  [name1Input, name2Input].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generateBtn.click();
+    });
+  });
+
+  window.onload = () => {
+    speechSynthesis.getVoices();
+  }
+</script>
+
 </body>
 </html>
